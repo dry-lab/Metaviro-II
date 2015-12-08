@@ -7,6 +7,7 @@ import itertools
 from collections import defaultdict
 import pickle
 import argparse
+import random
 
 from Bio import Entrez
 import socket
@@ -71,12 +72,14 @@ def space_kmer(kmer, pattern):
                    else joker
                    for letter, bit in zip(kmer, pattern))
 
-def kmerize(read, pattern):
+def kmerize(read, pattern, read_size):
     d = defaultdict(int)
     lp = len(pattern)
-    for i in range(len(read)-lp+1):
+    max_pos = len(read)-lp+1
+    for i in range(max_pos):
         d[space_kmer(read[i:i+lp], pattern)] += 1
-    return d
+    coef = len(read)/read_size
+    return {k:v*coef for k, v in d.items()}
 
 def print_vw_features(g_label, sk_dict, g_cat=None):
     if g_cat != None:
@@ -96,7 +99,7 @@ def get_category_gis(cat):
     logger.debug("- Getting all taxids...")
     taxids = getAllSonsByTaxid(getTaxidByName(cat)[0])
     logger.debug("- Converting species taxids to gis...")
-    return [gi_list[0] for gi_list in (getGiByTaxid(taxid) for taxid in taxids if getRankByTaxid(taxid) == 'species') if gi_list]
+    return [gi_list for gi_list in (getGiByTaxid(taxid) for taxid in taxids if getRankByTaxid(taxid) == 'species') if gi_list]
 
 def get_NCBI_sequence(gis):
     ids_list = ",".join([str(gi) for gi in gis if gi])
@@ -116,7 +119,7 @@ def main(argv=None):
     logger.debug("PREPROCESSING")
     logger.debug("Getting all gis...")
     if not args.pickle:
-        gis = [get_category_gis(categories[k]) for k in range(len(categories))]
+        gis = [get_category_gis(categories[k]) for k in categories.keys()]
         with open(pickle_file, 'wb') as output:
             pickle.dump(gis, output)
     else:
@@ -125,10 +128,14 @@ def main(argv=None):
 
     logger.debug("TRAINING")
     logger.debug("Selecting some gis...")
-    train_gis = [gis[k][:500] for k in range(len(categories))]
-    grped_alt_cat_gis = group(itertools.chain.from_iterable(zip(train_gis[0], train_gis[1], train_gis[2], train_gis[3])), chunks)
+
+    random.seed()
 
     batch = 0
+    
+    train_gis = [random.sample(gis[k], 500) for k in categories.keys()]
+    grped_alt_cat_gis = group(itertools.chain.from_iterable(zip(train_gis[0], train_gis[1], train_gis[2], train_gis[3])), chunks)
+    
     for gi_list in grped_alt_cat_gis:
         batch += 1
         logger.debug("Batch %d" % batch)
@@ -139,7 +146,7 @@ def main(argv=None):
         s.connect((host, port))
         for i in range(len(gi2seq)):
             (gi, seq) = gi2seq[i]
-            features = kmerize(seq[:read_size], pattern)
+            features = kmerize(seq[:read_size], pattern, read_size)
             vw_feat = print_vw_features(int(gi), features, i%4 + 1)
             s.sendall(vw_feat.encode())
             
