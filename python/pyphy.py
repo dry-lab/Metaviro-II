@@ -1,10 +1,9 @@
-#! /usr/bin/env python3
 # encoding utf-8
 
 import sqlite3
 from contextlib import closing
 
-db = "../taxdump/ncbi.db"
+db = "taxdump/ncbi.db"
 unknown = -1
 no_rank = "no rank"
 

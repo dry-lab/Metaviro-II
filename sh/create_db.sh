@@ -14,7 +14,7 @@ tar -xvzf taxdump.tar.Z
 echo 'Creating taxonomy database...'
 sqlite3 $db < create_db.sql
 echo 'Speeding up database...'
-python3 ${pypath}pre_pyphy.py names.dmp nodes.dmp ncbi.db
+python3 ${pypath}pre_pyphy.py names.dmp nodes.dmp $db
 sqlite3 $db < speed_db.sql
 echo 'Testing database'
 sqlite3 $db < test_db.sql
