@@ -59,7 +59,6 @@ def main():
 	print(infile)
 	infile="set.fasta"
 	print(infile)
-	print("amk")
 
 
 	try:
