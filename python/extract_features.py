@@ -4,7 +4,7 @@ from collections import defaultdict
 import argparse, gzip, sys
 
 def kmerize(read, pattern, ref_read_size):
-	
+
 	d = defaultdict(float)
 	lp = len(pattern)
 	max_pos = len(read)-lp+1
@@ -15,7 +15,7 @@ def kmerize(read, pattern, ref_read_size):
 
 
 def print_vw_features(g_label, sk_dict, g_cat=None):
-	
+
 	if g_cat != None:
 		feats = "%d '%d |" % (g_cat, g_label)
 	else:
@@ -25,7 +25,6 @@ def print_vw_features(g_label, sk_dict, g_cat=None):
 	return feats + "\n"
 
 def parse_function():
-	print("parsing arguments")
 	parser=argparse.ArgumentParser(description="Calculates k-mer frequencies from a given fasta file(s).")
 	parser.add_argument('-f', '--file', dest="infile", type =str, help="fasta file for the sequences (left empty to read from stdin)")
 	parser.add_argument("-k", "--k-mer", dest="kmer", type=int, help="the pattern of the given k-mer like 111")
@@ -40,26 +39,19 @@ def parse_function():
 		print("no args")
 		# display help message when no args are passed.
 		parser.print_help()
-	sys.exit(1)
+		sys.exit(1)
 
-	return(args)           
+	return(args)
 
 
 def main():
 
-	print("main")
 	args=parse_function()
 	infile=args.infile
 	kmer=str(args.kmer)
 	category=args.category
 	label=args.label
 	outfile=args.outfile
-	
-	print("trying to open")
-	print(infile)
-	infile="set.fasta"
-	print(infile)
-
 
 	try:
 		extension=infile[-2:]
@@ -99,8 +91,7 @@ def main():
 			features=kmerize(seq,kmer,150)
 			print(print_vw_features(category,features,label), file=output)
 
-	output.close()	
+	output.close()
 
 if __name__ == '__main__':                  #the main function
-	print("yayyy!")
 	main()
