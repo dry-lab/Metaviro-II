@@ -38,8 +38,6 @@ def parse_function():
 	parser.add_argument("-o", "--out-file",dest="outfile",type=str,help="name of the resulting file")
 	args=parser.parse_args()
 
-	print("parsed")
-
 	if len(sys.argv)==1:
 		print("no args")
 		# display help message when no args are passed.
@@ -61,22 +59,17 @@ def main():
 	try:
 		extension=infile[-2:]
 		if extension=="gz":
-			print(infile)
 			seq_file=gzip.open(infile,"r")
 		else:
 			seq_file=open(infile, 'r')
-			print(seq_file)
 	except:
 		seq_file=open("/dev/stdin","r")
-		print(seq_file)
 
 	line=seq_file.readline()
-	print(line)
 	if line[0]!=">":
 		print("Not a fasta file")
 		exit()
 	output=open(outfile,'w')
-	print("file opened")
 
 	while line!='':
 
