@@ -3,6 +3,11 @@
 from collections import defaultdict
 import argparse, gzip, sys
 
+def space_kmer(kmer, pattern):
+	return "".join(letter if bit=='1'
+		else '*'
+			for letter, bit in zip(kmer, pattern))
+
 def kmerize(read, pattern, ref_read_size):
 
 	d = defaultdict(float)
@@ -22,18 +27,16 @@ def print_vw_features(g_label, sk_dict, g_cat=None):
 		feats = "'%d |" % g_label
 	for k, v in sorted(sk_dict.items()):
 		feats += " %s:%.2f" % (k, v)
-	return feats + "\n"
+	return feats
 
 def parse_function():
 	parser=argparse.ArgumentParser(description="Calculates k-mer frequencies from a given fasta file(s).")
 	parser.add_argument('-f', '--file', dest="infile", type =str, help="fasta file for the sequences (left empty to read from stdin)")
 	parser.add_argument("-k", "--k-mer", dest="kmer", type=int, help="the pattern of the given k-mer like 111")
 	parser.add_argument("-c", "--category", dest="category", type=int, help="The category of the given sequences")
-	parser.add_argument("-l", "--label", dest="label", type=str, help="Human readable label information for the category")
+	parser.add_argument("-l", "--label", dest="label", type=int, help="Human readable label information for the category")
 	parser.add_argument("-o", "--out-file",dest="outfile",type=str,help="name of the resulting file")
 	args=parser.parse_args()
-
-	print("parsed")
 
 	if len(sys.argv)==1:
 		print("no args")
@@ -56,22 +59,17 @@ def main():
 	try:
 		extension=infile[-2:]
 		if extension=="gz":
-			print(infile)
 			seq_file=gzip.open(infile,"r")
 		else:
 			seq_file=open(infile, 'r')
-			print(seq_file)
 	except:
 		seq_file=open("/dev/stdin","r")
-		print(seq_file)
 
 	line=seq_file.readline()
-	print(line)
 	if line[0]!=">":
 		print("Not a fasta file")
 		exit()
 	output=open(outfile,'w')
-	print("file opened")
 
 	while line!='':
 
@@ -85,11 +83,11 @@ def main():
 
 		if line=="":
 			features=kmerize(seq,kmer,150)
-			print(print_vw_features(category,features,label), file=output)
+			print(print_vw_features(label,features,category), end="\n",file=output)
 			break
 		if line[0]==">":
 			features=kmerize(seq,kmer,150)
-			print(print_vw_features(category,features,label), file=output)
+			print(print_vw_features(label,features,category), end="\n",file=output)
 
 	output.close()
 
